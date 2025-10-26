@@ -1,0 +1,13 @@
+[Unit]
+Description=CAS Proxy Server
+After=network.target
+
+[Service]
+ExecStart=/usr/local/bin/casproxyserver
+Restart=always
+User=nobody
+Group=nogroup
+LimitNOFILE=65535
+
+[Install]
+WantedBy=multi-user.target

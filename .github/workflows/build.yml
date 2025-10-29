@@ -31,7 +31,7 @@ jobs:
       - name: Build yaml-cpp
         working-directory: thirdparty/yaml-cpp
         run: |
-          cmake -B build -DCMAKE_BUILD_TYPE=Release
+          cmake -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded
           cmake --build build --config Release
 
       - name: Build project

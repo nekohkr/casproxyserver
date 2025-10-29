@@ -4,7 +4,7 @@ Session::Session(websocketpp::server<websocketpp::config::asio>& server, websock
     : server(server), hdl(hdl) {
 }
 
-void Session::clear() {
+Session::~Session() {
     for (const auto& [virtualHandle, context] : mapCardContext) {
         if (context->hCard) {
             SCardDisconnect(context->hCard, SCARD_LEAVE_CARD);
@@ -24,7 +24,11 @@ uint64_t Session::addContext(SCARDCONTEXT hContext) {
     mapContext[virtualContext] = hContext;
     ++nextContext;
 
-    if (nextContext == 0 || nextContext == 0xFFFFFFFF) {
+    if (nextContext == 0xFFFFFFFF) {
+        ++nextContext;
+    }
+
+    if (nextContext == 0) {
         ++nextContext;
     }
 
@@ -36,7 +40,11 @@ std::shared_ptr<CardContext> Session::addCardContext() {
     mapCardContext[virtualCardHandle] = std::make_shared<CardContext>(shared_from_this(), virtualCardHandle);
     ++nextCardHandle;
 
-    if (nextCardHandle == 0 || nextCardHandle == 0xFFFFFFFF) {
+    if (nextCardHandle == 0xFFFFFFFF) {
+        ++nextCardHandle;
+    }
+
+    if (nextCardHandle == 0) {
         ++nextCardHandle;
     }
 

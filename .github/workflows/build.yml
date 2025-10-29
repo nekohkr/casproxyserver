@@ -1,0 +1,43 @@
+name: Build casproxyserver
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [windows-latest, ubuntu-latest]
+
+    steps:
+      - name: Checkout repository with submodules
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Setup CMake
+        uses: jwlawson/actions-setup-cmake@v2
+
+      - name: Build yaml-cpp
+        working-directory: thirdparty/yaml-cpp
+        run: |
+          cmake -B build -DCMAKE_BUILD_TYPE=Release
+          cmake --build build --config Release
+
+      - name: Build project
+        if: matrix.os == 'windows-latest'
+        uses: microsoft/setup-msbuild@v2
+        with:
+          vs-version: 'latest'
+
+      - name: Build (Windows)
+        if: matrix.os == 'windows-latest'
+        run: msbuild msvc/casproxyserver.sln /p:Configuration=Release
+
+      - name: Build (Linux)
+        if: matrix.os == 'ubuntu-latest'
+        run: make -j$(nproc)

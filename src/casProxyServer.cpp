@@ -77,7 +77,7 @@ private:
         }
 
         if (!config.isAllowedIp(clientIp)) {
-            server.close(hdl, websocketpp::close::status::policy_violation, "IP not allowed");
+            server.close(hdl, websocketpp::close::status::policy_violation, "IP address not allowed");
             return;
         }
 
@@ -89,7 +89,6 @@ private:
 
     void onClose(websocketpp::connection_hdl hdl) {
         std::cout << "[" << currentTime() << "] Connection closed: " << mapSession[hdl]->ip << "\n";
-        mapSession[hdl]->clear();
         {
             std::lock_guard<std::mutex> lock(mapSession[hdl]->connectionMutex);
             mapSession[hdl]->connected = false;
@@ -234,7 +233,10 @@ private:
         std::vector<uint8_t> readersBuffer(req.readersLength);
         LONG returnValue = SCardListReaders(*hNativeContext, req.isGroupsNull ? nullptr : (char*)req.groups.data(),
             req.readersLength == 0 ? nullptr : (char*)readersBuffer.data(), &readersLength);
-        readersBuffer.resize(readersLength);
+
+        if (readersLength < req.readersLength) {
+            readersBuffer.resize(static_cast<uint32_t>(readersLength));
+        }
 
         casproxy::SCardListReadersResponse res;
         res.packetId = req.packetId;
@@ -270,7 +272,7 @@ private:
 
         std::thread thread([cardContext]() {
             cardContext->run();
-        });
+            });
         thread.detach();
     }
 

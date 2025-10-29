@@ -9,5 +9,6 @@
     <ClInclude Include="../src/casProxy.h" />
     <ClInclude Include="../src/cardContext.h" />
     <ClInclude Include="../src/session.h" />
+    <ClInclude Include="../src/config.h" />
   </ItemGroup>
 </Project>

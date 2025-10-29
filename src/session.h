@@ -10,6 +10,7 @@
 class Session : public std::enable_shared_from_this<Session> {
 public:
     Session(websocketpp::server<websocketpp::config::asio>& server, websocketpp::connection_hdl);
+    ~Session();
     uint64_t addContext(SCARDCONTEXT hContext);
     std::shared_ptr<CardContext> addCardContext();
     std::optional<SCARDCONTEXT> findContext(uint64_t virtualContext);
@@ -17,8 +18,6 @@ public:
     void removeCardContext(uint64_t virtualContext);
     void removeCardHandle(uint64_t virtualCardHandle);
     void sendResponse(const casproxy::Response& res);
-    void clear();
-
     std::mutex mutex;
     std::mutex connectionMutex;
     std::string ip;
@@ -28,10 +27,7 @@ private:
     websocketpp::server<websocketpp::config::asio>& server;
     websocketpp::connection_hdl hdl;
     std::map<uint64_t, SCARDCONTEXT> mapContext;
-    std::mutex queueMutex;
     std::map<uint64_t, std::shared_ptr<CardContext>> mapCardContext;
-    std::condition_variable cv;
-    std::queue<std::string> queue;
     uint64_t nextContext{1};
     uint64_t nextCardHandle{1};
 

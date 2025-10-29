@@ -65,27 +65,27 @@ void CardContext::handleSCardConnect(rapidjson::Document& doc) {
         return;
     }
 
-    const auto hNativeContext = session->findContext(req.hContext);
+    const auto hNativeContext = session.lock()->findContext(req.hContext);
     if (!hNativeContext) {
         casproxy::SCardEstablishContextResponse res;
         res.packetId = req.packetId;
         res.apiReturn = SCARD_E_INVALID_HANDLE;
-        session->sendResponse(res);
+        session.lock()->sendResponse(res);
         return;
     }
 
-    SCARDCONTEXT hCard = 0;
     DWORD dwActiveProtocol = 0;
     LONG returnValue = SCardConnect(*hNativeContext, req.szReader.c_str(), req.dwShareMode, req.dwPreferredProtocols, &hCard, &dwActiveProtocol);
-
-    this->hCard = hCard;
+    if (returnValue != SCARD_S_SUCCESS) {
+        session.lock()->removeCardHandle(virtualCardHandle);
+    }
 
     casproxy::SCardConnectResponse res;
     res.packetId = req.packetId;
     res.apiReturn = returnValue;
     res.hCard = virtualCardHandle;
     res.dwActiveProtocol = dwActiveProtocol;
-    session->sendResponse(res);
+    session.lock()->sendResponse(res);
 }
 
 
@@ -95,13 +95,13 @@ void CardContext::handleSCardDisconnect(rapidjson::Document& doc) {
 
     LONG returnValue = SCardDisconnect(hCard, req.dwDisposition);
     if (returnValue == SCARD_S_SUCCESS) {
-        session->removeCardHandle(req.hCard);
+        session.lock()->removeCardHandle(req.hCard);
     }
 
     casproxy::SCardDisconnectResponse res;
     res.packetId = req.packetId;
     res.apiReturn = returnValue;
-    session->sendResponse(res);
+    session.lock()->sendResponse(res);
 }
 
 void CardContext::handleSCardBeginTransaction(rapidjson::Document& doc) {
@@ -113,7 +113,7 @@ void CardContext::handleSCardBeginTransaction(rapidjson::Document& doc) {
     casproxy::SCardBeginTransactionResponse res;
     res.packetId = req.packetId;
     res.apiReturn = returnValue;
-    session->sendResponse(res);
+    session.lock()->sendResponse(res);
 }
 
 void CardContext::handleSCardEndTransaction(rapidjson::Document& doc) {
@@ -125,7 +125,7 @@ void CardContext::handleSCardEndTransaction(rapidjson::Document& doc) {
     casproxy::SCardEndTransactionResponse res;
     res.packetId = req.packetId;
     res.apiReturn = returnValue;
-    session->sendResponse(res);
+    session.lock()->sendResponse(res);
 }
 
 void CardContext::handleSCardTransmit(rapidjson::Document& doc) {
@@ -156,7 +156,7 @@ void CardContext::handleSCardTransmit(rapidjson::Document& doc) {
     }
     res.isRecvPciNull = req.isRecvPciNull;
     res.recvLength = recvLength;
-    session->sendResponse(res);
+    session.lock()->sendResponse(res);
 }
 
 void CardContext::handleSCardGetAttrib(rapidjson::Document& doc) {
@@ -173,5 +173,5 @@ void CardContext::handleSCardGetAttrib(rapidjson::Document& doc) {
     res.apiReturn = status;
     res.attrBuffer = recvBuffer;
     res.attrLength = recvLength;
-    session->sendResponse(res);
+    session.lock()->sendResponse(res);
 }

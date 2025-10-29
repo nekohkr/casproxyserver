@@ -10,8 +10,8 @@ OBJ_FILES = $(SRC_FILES:$(SRC_DIR)/%.cpp=$(OBJ_DIR)/%.o)
 PCSC_INC = $(shell pkg-config --cflags-only-I libpcsclite)
 PCSC_LIB = $(shell pkg-config --libs libpcsclite)
 
-YAML_CPP_INC = $(shell pkg-config --cflags-only-I yaml-cpp)
-YAML_CPP_LIB = $(shell pkg-config --libs yaml-cpp)
+YAML_CPP_INC = -Ithirdparty/yaml-cpp/include
+YAML_CPP_LIB = thirdparty/yaml-cpp/build/libyaml-cpp.a
 
 CXX = g++
 CXXFLAGS = -std=c++17 -Wall -DASIO_STANDALONE $(PCSC_INC) $(YAML_CPP_INC) -Ithirdparty/asio/asio/include -Ithirdparty/rapidjson/include -Ithirdparty/websocketpp

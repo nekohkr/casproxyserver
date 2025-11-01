@@ -71,7 +71,7 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>$(SolutionDir)..\thirdparty\asio\asio\include;$(SolutionDir)..\thirdparty\websocketpp;$(SolutionDir)..\thirdparty\yaml-cpp\include;$(SolutionDir)..\thirdparty\rapidjson\include;$(IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)..\thirdparty\asio\asio\include;$(SolutionDir)..\thirdparty\yaml-cpp\include;$(IncludePath)</IncludePath>
     <LibraryPath>$(SolutionDir)..\thirdparty\yaml-cpp\build\Debug;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">

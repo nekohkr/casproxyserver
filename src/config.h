@@ -16,7 +16,7 @@ public:
     };
 
     std::string listenIp = "0.0.0.0";
-    uint16_t port = 9002;
+    uint16_t port = 24000;
     std::vector<Ipv4Cidr> allowedIpv4Ranges;
     std::vector<Ipv6Cidr> allowedIpv6Ranges;
 
@@ -46,14 +46,6 @@ public:
 
                     allowedIpv4Ranges.push_back(*v4);
                 }
-                else if (cidr.find(':') != std::string::npos) {
-                    auto v6 = parseIpv6Cidr(cidr);
-                    if (!v6) {
-                        throw std::runtime_error("Invalid CIDR '" + cidr + "'");
-                    }
-
-                    allowedIpv6Ranges.push_back(*v6);
-                }
                 else {
                     throw std::runtime_error("Invalid CIDR '" + cidr + "'");
                 }
@@ -62,34 +54,14 @@ public:
     }
 
     bool isAllowedIp(const std::string& ip) const {
-        if (ip.find(':') == std::string::npos) {
-            auto ipNum = parseIpv4(ip);
-            if (!ipNum) {
-                return false;
-            }
-
-            for (auto& cidr : allowedIpv4Ranges) {
-                if ((*ipNum & cidr.mask) == cidr.network) {
-                    return true;
-                }
-            }
+        auto ipNum = parseIpv4(ip);
+        if (!ipNum) {
+            return false;
         }
-        else {
-            auto ipBytes = parseIpv6(ip);
-            if (!ipBytes) {
-                return false;
-            }
-            for (auto& cidr : allowedIpv6Ranges) {
-                bool ok = true;
-                for (int i = 0; i < 16; i++) {
-                    if (((*ipBytes)[i] & cidr.mask[i]) != cidr.network[i]) {
-                        ok = false;
-                        break;
-                    }
-                }
-                if (ok) {
-                    return true;
-                }
+
+        for (auto& cidr : allowedIpv4Ranges) {
+            if ((*ipNum & cidr.mask) == cidr.network) {
+                return true;
             }
         }
         return false;
@@ -124,50 +96,6 @@ public:
         return out;
     }
 
-    static std::optional<Ipv6Cidr> parseIpv6Cidr(const std::string& cidrStr) {
-        auto pos = cidrStr.find('/');
-        std::string ip;
-        int prefix;
-        if (pos == std::string::npos) {
-            ip = cidrStr;
-            prefix = 128;
-        }
-        else {
-            ip = cidrStr.substr(0, pos);
-            prefix = std::stoi(cidrStr.substr(pos + 1));
-            if (prefix < 0 || prefix>128) {
-                return std::nullopt;
-            }
-        }
-
-        auto ipBytes = parseIpv6(ip);
-        if (!ipBytes) {
-            return std::nullopt;
-        }
-
-        std::array<uint8_t, 16> mask{};
-        for (int i = 0; i < 16; i++) {
-            if (prefix >= 8) {
-                mask[i] = 0xFF;
-                prefix -= 8;
-            }
-            else if (prefix > 0) {
-                mask[i] = 0xFF << (8 - prefix);
-                prefix = 0;
-            }
-            else {
-                mask[i] = 0;
-            }
-        }
-
-        Ipv6Cidr out;
-        for (int i = 0; i < 16; i++) {
-            out.network[i] = (*ipBytes)[i] & mask[i];
-            out.mask[i] = mask[i];
-        }
-        return out;
-    }
-
     static std::optional<uint32_t> parseIpv4(const std::string& ip) {
         std::stringstream ss{ std::string(ip) };
         std::string token;
@@ -188,50 +116,4 @@ public:
         return result;
     }
 
-    static std::optional<std::array<uint8_t, 16>> parseIpv6(const std::string& ip) {
-        std::array<uint8_t, 16> out{};
-        std::vector<std::string> parts;
-
-        std::stringstream ss{ std::string(ip) };
-        std::string temp;
-        while (std::getline(ss, temp, ':')) {
-            parts.push_back(temp);
-        }
-
-        size_t left = 0;
-        size_t right = 15;
-        bool doubleColon = false;
-
-        for (const auto& part : parts) {
-            if (part.empty()) {
-                if (doubleColon) {
-                    return std::nullopt;
-                }
-                doubleColon = true;
-                continue;
-            }
-
-            uint16_t val{};
-            auto [ptr, ec] = std::from_chars(part.data(), part.data() + part.size(), val, 16);
-            if (ec != std::errc{}) {
-                return std::nullopt;
-            }
-
-            if (!doubleColon) {
-                if (left >= 16) {
-                    return std::nullopt;
-                }
-                out[left++] = static_cast<uint8_t>(val >> 8);
-                out[left++] = static_cast<uint8_t>(val & 0xFF);
-            }
-            else {
-                if (right < 1) {
-                    return std::nullopt;
-                }
-                out[right--] = static_cast<uint8_t>(val & 0xFF);
-                out[right--] = static_cast<uint8_t>(val >> 8);
-            }
-        }
-        return out;
-    }
 };

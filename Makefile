@@ -1,4 +1,4 @@
-PROJECT_NAME = casProxyServer
+PROJECT_NAME = casproxyserver
 
 SRC_DIR = src
 OBJ_DIR = build
@@ -14,7 +14,7 @@ YAML_CPP_INC = -Ithirdparty/yaml-cpp/include
 YAML_CPP_LIB = thirdparty/yaml-cpp/build/libyaml-cpp.a
 
 CXX = g++
-CXXFLAGS = -std=c++17 -Wall -DASIO_STANDALONE $(PCSC_INC) $(YAML_CPP_INC) -Ithirdparty/asio/asio/include -Ithirdparty/rapidjson/include -Ithirdparty/websocketpp
+CXXFLAGS = -std=c++17 -Wall -DASIO_STANDALONE $(PCSC_INC) $(YAML_CPP_INC) -Ithirdparty/asio/asio/include
 LDFLAGS = $(PCSC_LIB) $(YAML_CPP_LIB)
 
 EXEC = $(OBJ_DIR)/$(PROJECT_NAME)

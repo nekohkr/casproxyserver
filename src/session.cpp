@@ -317,7 +317,7 @@ uint64_t Session::addContext(SCARDCONTEXT hContext) {
     mapContext[virtualContext] = hContext;
     ++nextContext;
 
-    if (nextContext == 0xFFFFFFFF) {
+    if (nextContext == -1) {
         ++nextContext;
     }
 
@@ -333,7 +333,7 @@ std::shared_ptr<CardContext> Session::addCardContext() {
     mapCardContext[virtualCardHandle] = std::make_shared<CardContext>(shared_from_this(), virtualCardHandle);
     ++nextCardHandle;
 
-    if (nextCardHandle == 0xFFFFFFFF) {
+    if (nextCardHandle == -1) {
         ++nextCardHandle;
     }
 

@@ -73,48 +73,6 @@ inline uint64_t swapEndian64(uint64_t num) {
         ((num << 56) & 0xFF00000000000000ULL);
 }
 
-inline std::optional<std::vector<uint8_t>> hexToBytes(const std::string& hex) {
-    if (hex.size() % 2 != 0)
-        return std::nullopt;
-
-    auto isHexChar = [](char c) {
-        return std::isdigit(static_cast<unsigned char>(c)) ||
-            (c >= 'a' && c <= 'f') ||
-            (c >= 'A' && c <= 'F');
-        };
-
-    std::vector<uint8_t> bytes;
-    bytes.reserve(hex.size() / 2);
-
-    for (size_t i = 0; i < hex.size(); i += 2) {
-        char high = hex[i];
-        char low = hex[i + 1];
-
-        if (!isHexChar(high) || !isHexChar(low))
-            return std::nullopt;
-
-        auto hexToNibble = [](char c) -> uint8_t {
-            if (c >= '0' && c <= '9') return c - '0';
-            if (c >= 'a' && c <= 'f') return c - 'a' + 10;
-            return c - 'A' + 10;
-            };
-
-        bytes.push_back((hexToNibble(high) << 4) | hexToNibble(low));
-    }
-
-    return bytes;
-}
-
-template <typename T>
-inline std::string bytesToHex(const std::vector<T>& bytes) {
-    std::stringstream ss;
-    ss << std::hex << std::setfill('0');
-    for (auto byte : bytes) {
-        ss << std::setw(2) << (static_cast<int>(byte) & 0xFF);
-    }
-    return ss.str();
-}
-
 inline const SCARD_IO_REQUEST* getPciByType(int32_t type) {
     switch (type) {
     case 0: return SCARD_PCI_T0;

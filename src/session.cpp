@@ -317,7 +317,7 @@ uint64_t Session::addContext(SCARDCONTEXT hContext) {
     mapContext[virtualContext] = hContext;
     ++nextContext;
 
-    if (nextContext == -1) {
+    if (nextContext == 0xFFFFFFFFFFFFFFFF) {
         ++nextContext;
     }
 
@@ -333,7 +333,7 @@ std::shared_ptr<CardContext> Session::addCardContext() {
     mapCardContext[virtualCardHandle] = std::make_shared<CardContext>(shared_from_this(), virtualCardHandle);
     ++nextCardHandle;
 
-    if (nextCardHandle == -1) {
+    if (nextCardHandle == 0xFFFFFFFFFFFFFFFF) {
         ++nextCardHandle;
     }
 
@@ -367,17 +367,32 @@ void Session::sendResponse(const casproxy::ResponseBase& res) {
     res.pack(writer);
 
     uint32_t packetLength = static_cast<uint32_t>(writer.buffer.size());
-    std::shared_ptr<std::vector<uint8_t>> packet = std::make_shared<std::vector<uint8_t>>(packetLength + 4);
+    std::vector<uint8_t> packet(packetLength + 4);
     packetLength = casproxy::swapEndian32(packetLength);
-    memcpy(packet->data(), &packetLength, 4);
-    memcpy(packet->data() + 4, writer.buffer.data(), writer.buffer.size());
+    memcpy(packet.data(), &packetLength, 4);
+    memcpy(packet.data() + 4, writer.buffer.data(), writer.buffer.size());
 
-    std::lock_guard<std::mutex> lock(sendMutex);
+    sendQueue.push_back(packet);
+    if (sendQueue.size() < 2) {
+        doWrite();
+    }
+}
+
+void Session::doWrite() {
     auto self = shared_from_this();
-    asio::async_write(socket, asio::buffer(*packet),
-        [this, self, packet](std::error_code ec, std::size_t) {
+
+    if (sendQueue.empty()) {
+        return;
+    }
+
+    asio::async_write(socket, asio::buffer(sendQueue.front()),
+        [this, self](std::error_code ec, std::size_t) {
             if (ec) {
                 close();
+            }
+            else {
+                sendQueue.pop_front();
+                doWrite();
             }
         }
     );
@@ -386,7 +401,14 @@ void Session::sendResponse(const casproxy::ResponseBase& res) {
 void Session::close() {
     std::error_code ignored;
     socket.close(ignored);
+
+    std::deque<std::vector<uint8_t>> empty;
+    sendQueue.swap(empty);
+
+    clear();
+
     if (onClose) {
-        onClose(shared_from_this());
+        auto cb = std::move(onClose);
+        cb(shared_from_this());
     }
 }

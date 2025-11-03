@@ -5,8 +5,8 @@ After=network.target
 [Service]
 ExecStart=/usr/local/bin/casproxyserver
 Restart=always
-User=nobody
-Group=nogroup
+User=root
+Group=root
 LimitNOFILE=65535
 
 [Install]

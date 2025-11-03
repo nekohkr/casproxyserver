@@ -55,7 +55,7 @@ jobs:
         run: |
           mkdir release
           copy .\msvc\x64\Release\casproxyserver.exe .\release\
-          copy .\scripts\config.yaml .\release\
+          copy .\scripts\config.yml .\release\
           $zipName = "casproxyserver-windows-x64-${{ github.ref_name }}.zip"
           powershell Compress-Archive -Path .\release\* -DestinationPath $zipName
           echo "ZIP_NAME=$zipName" >> $env:GITHUB_ENV

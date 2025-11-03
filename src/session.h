@@ -32,6 +32,7 @@ public:
     std::shared_ptr<CardContext> findCardContext(uint64_t virtualCardHandle);
     void removeCardContext(uint64_t virtualContext);
     void sendResponse(const casproxy::ResponseBase& res);
+    void doWrite();
     void close();
 
     std::string ip;
@@ -42,8 +43,8 @@ private:
     std::vector<uint8_t> packetData;
     std::map<uint64_t, SCARDCONTEXT> mapContext;
     std::map<uint64_t, std::shared_ptr<CardContext>> mapCardContext;
-    uint64_t nextContext{1};
-    uint64_t nextCardHandle{1};
+    uint64_t nextContext{ 1 };
+    uint64_t nextCardHandle{ 1 };
     CloseHandler onClose;
     std::deque<std::vector<uint8_t>> sendQueue;
     std::mutex sendMutex;

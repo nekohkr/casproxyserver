@@ -1,7 +1,7 @@
 #!/bin/bash
 
 echo "Copying casproxyserver config..."
-sudo cp config.yaml /usr/local/etc/casproxyserver.yaml
+sudo cp config.yml /usr/local/etc/casproxyserver.yml
 
 echo "Installing casproxyserver service..."
 sudo cp casproxyserver.service /etc/systemd/system/casproxyserver.service

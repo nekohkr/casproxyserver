@@ -15,26 +15,26 @@
 #include "session.h"
 
 #ifdef _WIN32
-constexpr const char* defaultConfigPath = "config.yaml";
+constexpr const char* defaultConfigPath = "config.yml";
 #else
-constexpr const char* defaultConfigPath = "/usr/local/etc/casproxyserver.yaml";
+constexpr const char* defaultConfigPath = "/usr/local/etc/casproxyserver.yml";
 #endif
 
 namespace {
 
-    std::string currentTime() {
-        using clock = std::chrono::system_clock;
-        auto now = clock::to_time_t(clock::now());
-        std::tm tm{};
+std::string currentTime() {
+    using clock = std::chrono::system_clock;
+    auto now = clock::to_time_t(clock::now());
+    std::tm tm{};
 #ifdef _WIN32
-        localtime_s(&tm, &now);
+    localtime_s(&tm, &now);
 #else
-        localtime_r(&now, &tm);
+    localtime_r(&now, &tm);
 #endif
-        std::ostringstream oss;
-        oss << std::put_time(&tm, "%Y-%m-%d %H:%M:%S");
-        return oss.str();
-    }
+    std::ostringstream oss;
+    oss << std::put_time(&tm, "%Y-%m-%d %H:%M:%S");
+    return oss.str();
+}
 
 }
 
@@ -89,7 +89,6 @@ private:
 
     void onClose(std::shared_ptr<Session> session) {
         std::cout << session->ip << " - " << currentTime() << " - Connection closed" << "\n";
-        session->clear();
         mapSession.erase(session.get());
     }
 

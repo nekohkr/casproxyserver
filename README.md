@@ -29,7 +29,8 @@ sudo ./scripts/install_systemd.sh
 ```
 
 ## Configuration
-By default, the configuration file is config.yml in the same folder as the executable on Windows, and /usr/local/etc/casproxyserver.yml on Linux. You can also specify a custom path as a command-line argument:
+By default, the configuration file is config.yml in the same folder as the executable on Windows, and /usr/local/etc/casproxyserver.yml on Linux.
+You can also specify a custom path as a command-line argument.
 ```bash
 ./casproxyserver ./casproxyserver.yml
 ```

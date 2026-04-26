@@ -30,6 +30,9 @@ void CardContext::run() {
         if (opcode == casproxy::Opcode::SCardConnectReq) {
             handleSCardConnect(std::static_pointer_cast<casproxy::SCardConnectRequest>(req));
         }
+        else if (opcode == casproxy::Opcode::SCardReconnectReq) {
+            handleSCardReconnect(std::static_pointer_cast<casproxy::SCardReconnectRequest>(req));
+        }
         if (opcode == casproxy::Opcode::SCardDisconnectReq) {
             handleSCardDisconnect(std::static_pointer_cast<casproxy::SCardDisconnectRequest>(req));
         }
@@ -78,6 +81,22 @@ void CardContext::handleSCardConnect(std::shared_ptr<casproxy::SCardConnectReque
     res.packetId = req->packetId;
     res.apiReturn = returnValue;
     res.hCard = virtualCardHandle;
+    res.dwActiveProtocol = dwActiveProtocol;
+    s->sendResponse(res);
+}
+
+void CardContext::handleSCardReconnect(std::shared_ptr<casproxy::SCardReconnectRequest> req) {
+    auto s = session.lock();
+    if (!s) {
+        return;
+    }
+
+    DWORD dwActiveProtocol = 0;
+    LONG returnValue = SCardReconnect(hCard, req->dwShareMode, req->dwPreferredProtocols, req->dwInitialization, &dwActiveProtocol);
+
+    casproxy::SCardReconnectResponse res;
+    res.packetId = req->packetId;
+    res.apiReturn = returnValue;
     res.dwActiveProtocol = dwActiveProtocol;
     s->sendResponse(res);
 }

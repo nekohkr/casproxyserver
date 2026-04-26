@@ -101,6 +101,8 @@ enum class Opcode : uint32_t {
     SCardTransmitRes,
     SCardGetAttribReq,
     SCardGetAttribRes,
+    SCardReconnectReq,
+    SCardReconnectRes,
 };
 
 class StreamWriter {
@@ -409,6 +411,42 @@ protected:
 
 };
 
+class SCardReconnectRequest : public TypedRequest<Opcode::SCardReconnectReq> {
+public:
+    uint64_t hCard{0};
+    uint32_t dwShareMode{0};
+    uint32_t dwPreferredProtocols{0};
+    uint32_t dwInitialization{0};
+
+protected:
+    virtual bool unpackPayload(StreamReader& reader) {
+        if (!reader.readBe(hCard)) {
+            return false;
+        }
+        if (!reader.readBe(dwShareMode)) {
+            return false;
+        }
+        if (!reader.readBe(dwPreferredProtocols)) {
+            return false;
+        }
+        if (!reader.readBe(dwInitialization)) {
+            return false;
+        }
+        if (reader.remaining() > 0) {
+            return false;
+        }
+        return true;
+    }
+
+    virtual void packPayload(StreamWriter& writer) const {
+        writer.writeBe(hCard);
+        writer.writeBe(dwShareMode);
+        writer.writeBe(dwPreferredProtocols);
+        writer.writeBe(dwInitialization);
+    }
+
+};
+
 class SCardDisconnectRequest : public TypedRequest<Opcode::SCardDisconnectReq> {
 public:
     uint64_t hCard{0};
@@ -527,7 +565,7 @@ protected:
         writer.writeBe(sendBuffer);
         writer.writeBe(isRecvPciNull);
         if (!isRecvPciNull) {
-            writer.writeBe(isRecvPciNull);
+            writer.writeBe(recvPciProtocol);
             writer.writeBe(recvPciLength);
         }
         writer.writeBe(recvLength);
@@ -631,9 +669,6 @@ public:
 
 protected:
     virtual bool unpackPayload(StreamReader& reader) {
-        if (!reader.readBe(resultCode)) {
-            return false;
-        }
         if (!reader.readBe(apiReturn)) {
             return false;
         }
@@ -642,7 +677,6 @@ protected:
     }
 
     virtual void packPayload(StreamWriter& writer) const {
-        writer.writeBe(resultCode);
         writer.writeBe(apiReturn);
     }
 
@@ -701,6 +735,30 @@ protected:
     virtual void packPayload(StreamWriter& writer) const {
         writer.writeBe(apiReturn);
         writer.writeBe(hCard);
+        writer.writeBe(dwActiveProtocol);
+    }
+
+};
+
+class SCardReconnectResponse : public TypedResponse<Opcode::SCardReconnectRes> {
+public:
+    uint32_t apiReturn{0};
+    uint32_t dwActiveProtocol{0};
+
+protected:
+    virtual bool unpackPayload(StreamReader& reader) {
+        if (!reader.readBe(apiReturn)) {
+            return false;
+        }
+        if (!reader.readBe(dwActiveProtocol)) {
+            return false;
+        }
+
+        return true;
+    }
+
+    virtual void packPayload(StreamWriter& writer) const {
+        writer.writeBe(apiReturn);
         writer.writeBe(dwActiveProtocol);
     }
 
@@ -851,16 +909,12 @@ public:
     }
 
 private:
-    template<typename T>
-    std::shared_ptr<ResponseBase> createResponse() {
-        return std::make_shared<T>();
-    }
-
     static inline const std::unordered_map<Opcode, std::function<std::shared_ptr<ResponseBase>()>> mapResponse = {
         { Opcode::SCardEstablishContextRes,     []{ return std::make_shared<SCardEstablishContextResponse>(); } },
         { Opcode::SCardReleaseContextRes,       []{ return std::make_shared<SCardReleaseContextResponse>(); } },
         { Opcode::SCardListReadersRes,          []{ return std::make_shared<SCardListReadersResponse>(); } },
         { Opcode::SCardConnectRes,              []{ return std::make_shared<SCardConnectResponse>(); } },
+        { Opcode::SCardReconnectRes,            []{ return std::make_shared<SCardReconnectResponse>(); } },
         { Opcode::SCardDisconnectRes,           []{ return std::make_shared<SCardDisconnectResponse>(); } },
         { Opcode::SCardBeginTransactionRes,     []{ return std::make_shared<SCardBeginTransactionResponse>(); } },
         { Opcode::SCardEndTransactionRes,       []{ return std::make_shared<SCardEndTransactionResponse>(); } },
@@ -868,6 +922,5 @@ private:
         { Opcode::SCardGetAttribRes,            []{ return std::make_shared<SCardGetAttribResponse>(); } },
     };
 };
-
 
 }

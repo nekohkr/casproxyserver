@@ -25,5 +25,6 @@ cmake --build build --config Release
 cd ../..
 make
 sudo make install
-sudo ./scripts/install_systemd.sh
+cd scripts
+sudo ./install_systemd.sh
 ```

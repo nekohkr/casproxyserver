@@ -108,6 +108,16 @@ void Session::handlePacket() {
         handleSCardConnect(req);
         break;
     }
+    case casproxy::Opcode::SCardReconnectReq: {
+        casproxy::SCardReconnectRequest req;
+        if (!req.unpack(packetId, reader)) {
+            close();
+            return;
+        }
+
+        handleSCardReconnect(req);
+        break;
+    }
     case casproxy::Opcode::SCardDisconnectReq: {
         casproxy::SCardDisconnectRequest req;
         if (!req.unpack(packetId, reader)) {
@@ -245,6 +255,19 @@ void Session::handleSCardConnect(const casproxy::SCardConnectRequest& req) {
         cardContext->run();
         });
     cardContext->workerThread.detach();
+}
+
+void Session::handleSCardReconnect(const casproxy::SCardReconnectRequest& req) {
+    const auto cardContext = findCardContext(req.hCard);
+    if (!cardContext || !cardContext->isRunning()) {
+        casproxy::SCardReconnectResponse res;
+        res.packetId = req.packetId;
+        res.apiReturn = SCARD_E_INVALID_HANDLE;
+        sendResponse(res);
+        return;
+    }
+
+    cardContext->addTask(std::make_shared<casproxy::SCardReconnectRequest>(req));
 }
 
 void Session::handleSCardDisconnect(const casproxy::SCardDisconnectRequest& req) {

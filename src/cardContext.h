@@ -16,6 +16,7 @@ public:
     void stop();
     void run();
     void handleSCardConnect(std::shared_ptr<casproxy::SCardConnectRequest> req);
+    void handleSCardReconnect(std::shared_ptr<casproxy::SCardReconnectRequest> req);
     void handleSCardDisconnect(std::shared_ptr<casproxy::SCardDisconnectRequest> req);
     void handleSCardBeginTransaction(std::shared_ptr<casproxy::SCardBeginTransactionRequest> req);
     void handleSCardEndTransaction(std::shared_ptr<casproxy::SCardEndTransactionRequest> req);

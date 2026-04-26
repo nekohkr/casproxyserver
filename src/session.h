@@ -21,6 +21,7 @@ public:
     void handleSCardReleaseContext(const casproxy::SCardReleaseContextRequest& req);
     void handleSCardListReaders(const casproxy::SCardListReadersRequest& req);
     void handleSCardConnect(const casproxy::SCardConnectRequest& req);
+    void handleSCardReconnect(const casproxy::SCardReconnectRequest& req);
     void handleSCardDisconnect(const casproxy::SCardDisconnectRequest& req);
     void handleSCardBeginTransaction(const casproxy::SCardBeginTransactionRequest& req);
     void handleSCardEndTransaction(const casproxy::SCardEndTransactionRequest& req);
